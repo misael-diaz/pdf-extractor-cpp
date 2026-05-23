@@ -50,11 +50,22 @@ int main()
 	}
 
 
-	uint64_t count = 0;
+	uint64_t bytes_written = 0;
 	char unsigned *data = (char unsigned*) buf;
 	poppler::byte_array bytes = page->text().to_utf8();
-	for (uint64_t i = 0; i != bytes.size(); ++i, ++count) {
-		data[count] = bytes[i];
+	for (uint64_t i = 0; i != bytes.size(); ++i, ++bytes_written) {
+		data[bytes_written] = bytes[i];
+		if ((len_mmap - bytes_written) <= pagesz) {
+			buf = mremap(buf, len_mmap, (len_mmap << 1), MREMAP_MAYMOVE);
+			if (MAP_FAILED == buf) {
+				if (errno) {
+					fprintf(stderr, "%s\n", strerror(errno));
+				}
+				exit(EXIT_FAILURE);
+			}
+			len_mmap <<= 1;
+			data = (char unsigned*) buf;
+		}
 	}
 
 	data = (char unsigned*) buf;
