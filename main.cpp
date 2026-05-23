@@ -18,9 +18,7 @@ int main()
 	uint64_t len_mmap = (pagesz << 1);
 
         errno = 0;
-        int fd = -1;
-        int64_t of = 0;
-        void *buf = mmap(NULL, len_mmap, PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, fd, of);
+        void *buf = mmap(NULL, len_mmap, PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	if (MAP_FAILED == buf) {
 		if (errno) {
 			fprintf(stderr, "%s\n", strerror(errno));
