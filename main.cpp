@@ -53,8 +53,8 @@ int main()
 	uint64_t count = 0;
 	char unsigned *data = (char unsigned*) buf;
 	poppler::byte_array bytes = page->text().to_utf8();
-	for (uint64_t i = 0; i != bytes.size(); ++i, ++count, ++data) {
-		*data = bytes[i];
+	for (uint64_t i = 0; i != bytes.size(); ++i, ++count) {
+		data[count] = bytes[i];
 	}
 
 	data = (char unsigned*) buf;
