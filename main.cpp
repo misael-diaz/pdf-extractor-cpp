@@ -1,0 +1,206 @@
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+#include <poppler-document.h>
+#include <poppler-page.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <cstdlib>
+#include <cstring>
+#include <cstdint>
+#include <cstdio>
+#include <cerrno>
+
+int main()
+{
+	int64_t rc = 0;
+	uint64_t const pagesz = sysconf(_SC_PAGESIZE);
+	uint64_t len_mmap = (pagesz << 1);
+
+        errno = 0;
+        void *buf = mmap(NULL, len_mmap, PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	if (MAP_FAILED == buf) {
+		if (errno) {
+			fprintf(stderr, "%s\n", strerror(errno));
+		}
+		exit(EXIT_FAILURE);
+	}
+
+	rc = madvise(buf, len_mmap, MADV_WILLNEED);
+	if (-1 == rc) {
+		fprintf(stderr, "%s", "error: madvise fast access failed\n");
+		if (errno) {
+			fprintf(stderr, "%s\n", strerror(errno));
+		}
+		exit(EXIT_FAILURE);
+	}
+
+
+	std::unique_ptr<poppler::document> doc(poppler::document::load_from_file("doc.pdf"));
+	if (!doc) {
+		fprintf(stderr, "%s", "error: failed to load document from file\n");
+		exit(EXIT_FAILURE);
+	}
+
+	// NOTE: we are assuming that the important is on the first page
+	std::unique_ptr<poppler::page> page(doc->create_page(0));
+	if (!page) {
+		fprintf(stderr, "%s", "error: failed to create page\n");
+		exit(EXIT_FAILURE);
+	}
+
+
+	uint64_t bytes_written = 0;
+	char unsigned *data = (char unsigned*) buf;
+	poppler::byte_array bytes = page->text().to_utf8();
+	for (uint64_t i = 0; i != bytes.size(); ++i, ++bytes_written) {
+		data[bytes_written] = bytes[i];
+		if ((len_mmap - bytes_written) <= pagesz) {
+			buf = mremap(buf, len_mmap, (len_mmap << 1), MREMAP_MAYMOVE);
+			if (MAP_FAILED == buf) {
+				if (errno) {
+					fprintf(stderr, "%s\n", strerror(errno));
+				}
+				exit(EXIT_FAILURE);
+			}
+			len_mmap <<= 1;
+			data = (char unsigned*) buf;
+		}
+	}
+
+	errno = 0;
+	void *dstbuf = mmap(NULL, len_mmap, PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+	if (MAP_FAILED == dstbuf) {
+		fprintf(stderr, "%s", "error: destination chat memory mapping failed\n");
+		if (errno) {
+			fprintf(stderr, "%s\n", strerror(errno));
+		}
+		_exit(1);
+	}
+
+	rc = madvise(dstbuf, len_mmap, MADV_WILLNEED);
+	if (-1 == rc) {
+		fprintf(stderr, "%s", "error: dest mmap sequential access failed\n");
+		if (errno) {
+			fprintf(stderr, "%s\n", strerror(errno));
+		}
+		_exit(1);
+	}
+
+	uint64_t len = 0;
+	uint64_t count = 0;
+	char unsigned *srcbuf = (char unsigned*) buf;
+	char unsigned *dst = (char unsigned*) dstbuf;
+	char unsigned *txt = (char unsigned*) srcbuf;
+	// excludes non-ASCII characters from the content
+	while (bytes_written > count) {
+		if (0x80u > (*txt)) {
+			if (((*txt) < 0x0au)) {
+				*dst = 0x20u;
+			}
+			else if (((*txt) >= 0x0bu) && ((*txt) < 0x20u)) {
+				*dst = 0x20u;
+			}
+			else if (((*txt) == 0x22u) || ((*txt) == 0x27u)) {
+				*dst = 0x20u;
+			}
+			else if (((*txt) >= 0x41u) && ((*txt) < 0x5bu)) {
+				*dst = (((*txt) - 0x41u) + 0x61u);
+			}
+			else if ((0x7fu == (*txt))) {
+				*dst = 0x20u;
+			}
+			else {
+				*dst = *txt;
+			}
+			txt += 1;
+			dst += 1;
+			count += 1;
+			len += 1;
+		}
+		else if (0xc2 > (*txt))  {
+			fprintf(stderr, "%s", "error: invalid utf-8 prefix\n");
+			_exit(1);
+		}
+		else if (0xe0u > (*txt)) {
+			uint16_t const value = ((txt[1] << 8) | txt[0]);
+			if ((value >= 0x80c3u) && (value < 0x86c3u)) {
+				*dst = 'a';
+				dst += 1;
+				len += 1;
+			}
+			else if ((value >= 0x88c3u) && (value < 0x8cc3u)) {
+				*dst = 'e';
+				dst += 1;
+				len += 1;
+			}
+			else if ((value >= 0x8cc3u) && (value < 0x90c3u)) {
+				*dst = 'i';
+				dst += 1;
+				len += 1;
+			}
+			else if ((value >= 0x92c3u) && (value < 0x97c3u)) {
+				*dst = 'o';
+				dst += 1;
+				len += 1;
+			}
+			else if ((value >= 0x99c3u) && (value < 0x9ec3u)) {
+				*dst = 'u';
+				dst += 1;
+				len += 1;
+			}
+			else if ((value >= 0xa0c3u) && (value < 0xa6c3u)) {
+				*dst = 'a';
+				dst += 1;
+				len += 1;
+			}
+			else if ((value >= 0xa8c3u) && (value < 0xacc3u)) {
+				*dst = 'e';
+				dst += 1;
+				len += 1;
+			}
+			else if ((value >= 0xacc3u) && (value < 0xb0c3u)) {
+				*dst = 'i';
+				dst += 1;
+				len += 1;
+			}
+			else if ((value == 0xb1c3u)) {
+				*dst = 'n';
+				dst += 1;
+				len += 1;
+			}
+			else if ((value >= 0xb2c3u) && (value < 0xb7c3u)) {
+				*dst = 'o';
+				dst += 1;
+				len += 1;
+			}
+			else if ((value >= 0xb9c3u) && (value < 0xbdc3u)) {
+				*dst = 'u';
+				dst += 1;
+				len += 1;
+			}
+			txt += 2;
+			count += 2;
+		}
+		else if (0xf0u > (*txt)) {
+			txt += 3;
+			count += 3;
+		}
+		else {
+			txt += 4;
+			count += 4;
+		}
+	}
+	if (bytes_written != count) {
+		fprintf(stderr, "%s", "error: bytes read and filesize mismatch\n");
+		exit(EXIT_FAILURE);
+	}
+	else {
+		fprintf(stdout, "%s %lu\n", "bytes-raw:", bytes_written);
+		fprintf(stdout, "%s %lu\n", "bytes-kept:", len);
+	}
+
+	data = (char unsigned*) dstbuf;
+	fprintf(stdout, "%s", data);
+	return 0;
+}
