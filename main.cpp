@@ -357,7 +357,8 @@ int main()
         char *ste = strstr((char*) dstbuf, "salud total eps");
 	if (ste) {
 		fprintf(stdout, "%s", "processing: salud total document\n");
-		char *doctype = strstr((char*) dstbuf, "tipo documento");
+		char anchor[] = "tipo documento";
+		char *doctype = strstr((char*) dstbuf, anchor);
 		if (!doctype) {
 			fprintf(stderr, "%s", "error: missing doctype info\n");
 			exit(EXIT_FAILURE);
@@ -381,11 +382,32 @@ int main()
 			fprintf(stderr, "%s", "error: would overrun buffer\n");
 			exit(EXIT_FAILURE);
 		}
-		patient += sizeof(nombre);
-		uint64_t const sz = (date - patient);
+		uint64_t sz = (date - (patient + sizeof(nombre)));
 		memset(patient_name, 0, BUFFER_SIZE);
-		memcpy(patient_name, patient, sz);
-		fprintf(stdout, "%s\n", patient_name);
+		memcpy(patient_name, patient + sizeof(nombre), sz);
+
+		char documento[] = "documento:";
+		char *document = strstr(doctype + sizeof(anchor), documento);
+		if (!document)  {
+			fprintf(stderr, "%s", "error: missing document info\n");
+			exit(EXIT_FAILURE);
+		}
+		if (document >= patient) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((patient - document) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		document += sizeof(documento);
+		sz = (patient - document);
+		memset(patient_document, 0, BUFFER_SIZE);
+		memcpy(patient_document, document, sz);
+
+		fprintf(stdout, "name: %s\n", patient_name);
+		fprintf(stdout, "id: %s\n", patient_document);
 		exit(EXIT_SUCCESS);
 	}
 
