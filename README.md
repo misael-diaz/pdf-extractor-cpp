@@ -58,7 +58,7 @@ The build is simple, all that you need is to install poppler, this document show
 
 Moreover, since there are no LLMs in the loop you get a performance application essentially for free if you compare it to what it takes to make LLM processing more deterministic and reliable. The problem with that approach is not only the costs, but the fact that you are trying to coerce a system that is not meant to be reproducible deterministic. By introducing LLMs into this crucial step you risk loosing the credibility of your clients if the LLMs hallucinate or leak data, this is far more important than revenue any day. Your clients are the reason for your business to exist. 
 
-Open source code. I am releasing my code under the MIT License so that it will be easy for anyone to use this code to address similar problems. The other advantage is that tools like this when made open source a community can grow from it and become more than their original intention or use.
+Another advantage is that code is open source. I am releasing my code under the MIT License so that it will be easy for anyone to use this code to address similar problems. The other advantage is that tools like this when made open source a community can grow from it and become more than their original intention or use.
 
 ## Broader Impact
 
