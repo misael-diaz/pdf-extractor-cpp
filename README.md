@@ -45,7 +45,7 @@ Lists the most important features that I was able to implement during the event 
 - **filters out watermark**: at the byte level the watermarks are easy to identify, filtering out the watermark was achieved by writing simple conditionals. These were applied after doing the ascii folding transformation
 - **extracts names from multiline text**: extracts the full patient name even if it spans multiple line (in the tabulated Sura records).
 - **extracts physician name**: gets the name of the phsysician from one of the cases. Had been given more time I would have had more cases completed. However I had to weigh the number of features against my ability to pitch the work done the next day.
-- **zero dependencies**: poppler is easy to install and frankly should not even be considered a dependency. Unlike Python or other interpreted or jit compiled languages the dependencies always a problem. Projects need maintenance as the language or the ecosystem evolves thereby increasing the burden of the developers. This is a build once application. All that you need the GNU Compiler Collection (GCC) to build it.
+- **zero dependencies**: poppler is easy to install and frankly should not even be considered a dependency. Unlike Python or other interpreted or jit compiled languages the dependencies are always a problem. Projects need maintenance as the language or the ecosystem evolves thereby increasing the burden on the developers that maintain it. This is a build once application. All that you need the GNU Compiler Collection (GCC) to build it.
 - **high performance**: This code can run in a Raspberry Pi if you want, it's a low level code that requires little resources. Pretty much the memory to load the pdf into memory.
 
 ## Advantages
