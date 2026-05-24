@@ -357,18 +357,18 @@ int main()
         char *ste = strstr((char*) dstbuf, "salud total eps");
 	if (ste) {
 		fprintf(stdout, "%s", "processing: salud total document\n");
-		char *document = strstr((char*) dstbuf, "documento");
-		if (!document) {
-			fprintf(stderr, "%s", "error: missing document info\n");
+		char *doctype = strstr((char*) dstbuf, "tipo documento");
+		if (!doctype) {
+			fprintf(stderr, "%s", "error: missing doctype info\n");
 			exit(EXIT_FAILURE);
 		}
 		char nombre[] = "nombre:";
-		char *patient = strstr((char*) document, nombre);
+		char *patient = strstr((char*) doctype, nombre);
 		if (!patient)  {
 			fprintf(stderr, "%s", "error: missing patient info\n");
 			exit(EXIT_FAILURE);
 		}
-		char *date = strstr((char*) document, "fecha");
+		char *date = strstr((char*) doctype, "fecha");
 		if (!date)  {
 			fprintf(stderr, "%s", "error: missing date info\n");
 			exit(EXIT_FAILURE);
