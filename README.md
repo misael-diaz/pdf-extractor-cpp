@@ -50,7 +50,7 @@ Lists the most important features that I was able to implement during the event 
 
 ## Advantages
 
-You don't need a lot of compute to get a reliable and performant application that gets the job done. If you consider the potential problems of fetching sensitive patient or financial data to LLMs. Business need to be really weigh the benefits or advantages of using AI to handle that data. I am certain that the right way to process the data is by writing performant and reliable code. It's deterministic not susceptible to stochastic or probabilistic based solutions such as machine learning algorithms and LLMs.
+You don't need a lot of compute to get a reliable and performant application that gets the job done. If you consider the potential problems of fetching sensitive patient or financial data to LLMs. Business need to be really careful and weigh the benefits or advantages of using AI to handle the data extraction and processing. I am certain that the right way to process the data is by writing performant and reliable code. It's deterministic not susceptible to stochastic or probabilistic based solutions such as machine learning algorithms and LLMs.
 
 The build is simple, all that you need is to install poppler, this document shows you how, and to build with the C++ compiler provide by GCC or LLVM if you prefer. Simplicity is an advantage, you don't have to deal with massive dependencies, sometimes requires compartmentalization with Docker to isolate the application, or requires very long build times (Rust mentioned). This is a lean implementation so even if C++ is not considered a fast build project for this one it is because we do not leverage the complexities introduced by the STL.
 
