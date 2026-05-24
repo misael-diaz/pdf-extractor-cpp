@@ -443,8 +443,36 @@ int main()
 		memset(patient_document, 0, BUFFER_SIZE);
 		memcpy(patient_document, document, sz);
 
+		// extracts the physician name
+		char profesional[] = "profesional";
+		char *physician = strstr((char*) dstbuf, profesional);
+		if (!physician)  {
+			fprintf(stderr, "%s", "error: missing physician info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		document = strstr(physician, cedula);
+		if (!document)  {
+			fprintf(stderr, "%s", "error: missing physician id\n");
+			exit(EXIT_FAILURE);
+		}
+		if (physician >= document) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((document - physician) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		physician += sizeof(profesional);
+		sz = (document - physician);
+		memset(physician_name, 0, BUFFER_SIZE);
+		memcpy(physician_name, physician, sz);
+
 		fprintf(stdout, "name: %s\n", patient_name);
 		fprintf(stdout, "id: %s\n", patient_document);
+		fprintf(stdout, "physician: %s\n", physician_name);
 
 		exit(EXIT_SUCCESS);
 	}
