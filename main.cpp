@@ -498,6 +498,16 @@ int main()
 			exit(EXIT_FAILURE);
 		}
 
+		if ((str - cc) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		// extracts the document id (cedula)
+		uint64_t sz = (str - (cc + sizeof(ccpattern)));
+		memset(patient_document, 0, BUFFER_SIZE);
+		memcpy(patient_document, cc + sizeof(ccpattern), sz);
+
 		char afiliado[] = "afiliado";
 		char *patient = strstr((char*) dstbuf, afiliado);
 		if (!patient)  {
@@ -516,7 +526,7 @@ int main()
 		}
 
 		// copy the first part of the name
-		uint64_t sz = (patient - str);
+		sz = (patient - str);
 		memset(patient_name, 0, BUFFER_SIZE);
 		memcpy(patient_name, str, sz);
 
@@ -562,7 +572,9 @@ int main()
 		}
 
 		strncat(patient_name, patient, sz);
-		fprintf(stdout, "%s\n", patient_name);
+
+		fprintf(stdout, "name: %s\n", patient_name);
+		fprintf(stdout, "id: %s\n", patient_document);
 		exit(EXIT_SUCCESS);
 	}
 
