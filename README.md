@@ -43,7 +43,7 @@ Along the line of writing functional code you will notice that I did not bother 
 Lists the most important features that I was able to implement during the event timeline:
 
 - **zero copy overhead**: a memory map is used to store the extracted data for performance reasons. This means that the Linux Kernel is giving us fast access to memory without incurring on copies from userspace to kernelspace.
-- **lean data**: we need only 7-bits to represent ASCII characters and this means that if there are size limitations (as mentioned in the challenge) by doing this data conversion we are getting rid of the bloat. The document size is reduced to as many bytes as text characters in the document.
+- **lean data**: we only need 7-bits to represent ASCII characters and this means that if there are size limitations (as mentioned in the challenge) by doing this data conversion we are getting rid of the bloat. The document size is reduced to as many bytes as text characters in the document.
 - **filters out watermark**: at the byte level the watermarks are easy to identify, filtering out the watermark was achieved by writing simple conditionals. These were applied after doing the ascii folding transformation
 - **extracts names from multiline text**: extracts the full patient name even if it spans multiple line (in the tabulated Sura records).
 - **extracts physician name**: gets the name of the phsysician from one of the cases. Had been given more time I would have had more cases completed. However I had to weigh the number of features against my ability to pitch the work done the next day.
