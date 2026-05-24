@@ -24,7 +24,7 @@ g++ -std=gnu++11 -I/usr/include/poppler/cpp/ -Wall -Wformat -O0 -g main.cpp -o p
 
 ## Challenges
 
-This section is dedicated to documenting the challenges that I encountered during the initial phase before I even decided to commit to developing a solution for this challenge.
+This section is dedicated to documenting the challenges that I encountered during the initial phase before I even decided to commit to developing a solution for this challenge, for I was considering to work on a personal project during the event.
 
 - **data extraction**: deciding what tool to use to extract the data from the PDF is challenging because there are many alternatives. Chose poppler because it has been battle tested and it require minimal code to work at the byte level.
 - **data cleanup**: doing ascii folding simplifies the parsing of the document and also helps with cleaning up data that could confuse the pdf extraction tool
