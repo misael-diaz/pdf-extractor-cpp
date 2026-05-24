@@ -46,6 +46,8 @@ You don't need a lot of compute to get a reliable and performant application tha
 
 Moreover, since there are no LLMs in the loop you get a performance application essentially for free if you compare it to what it takes to make LLM processing more deterministic and reliable. The problem with that approach is not only the costs, but the fact that you are trying to coerce a system that is not meant to be reproducible deterministic. By introducing LLMs into this crucial step you risk loosing the credibility of your clients, this is far more important than revenue any day, for they are the reason for your business to exist. 
 
+Open source code. I am releasing my code under the MIT License so that it will be easy for anyone to use this code to address similar problems. The other advantage is that tools like this when made open source a community can grow from it and become more than their original intention or use.
+
 ## Broader Impact
 
 This approach of writing low level code to extract sensitive data from a PDF document can be applied not only for the health sector but also to other sectors as well such as finance (realiable data extraction from bank summaries).
