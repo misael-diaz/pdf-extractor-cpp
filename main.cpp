@@ -530,8 +530,42 @@ int main()
 		memset(patient_document, 0, BUFFER_SIZE);
 		memcpy(patient_document, document, sz);
 
+		// extracts physician name
+		char prescritor[] = "prescritor";
+		char *section = strstr((char*) dstbuf, prescritor);
+		if (!section)  {
+			fprintf(stderr, "%s", "error: missing physician-section info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		char *physician = strstr(section, nombre);
+		if (!section)  {
+			fprintf(stderr, "%s", "error: missing physician-name info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		char *tel = strstr(section, "telefono");
+		if (!tel)  {
+			fprintf(stderr, "%s", "error: missing physician-telephone\n");
+			exit(EXIT_FAILURE);
+		}
+		if (physician >= tel) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((tel - physician) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		physician += sizeof(nombre);
+		sz = (tel - physician);
+		memset(physician_name, 0, BUFFER_SIZE);
+		memcpy(physician_name, physician, sz);
+
 		fprintf(stdout, "name: %s\n", patient_name);
 		fprintf(stdout, "id: %s\n", patient_document);
+		fprintf(stdout, "physician: %s\n", physician_name);
 		exit(EXIT_SUCCESS);
 	}
 
