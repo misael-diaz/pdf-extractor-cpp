@@ -327,5 +327,35 @@ int main()
 		exit(EXIT_SUCCESS);
 	}
 
+	char *se = strstr((char*) dstbuf, "sanitas");
+	if (se) {
+		fprintf(stdout, "%s", "processing: sanitas document\n");
+		char nombre[] = "nombre";
+		char *patient = strstr((char*) dstbuf, nombre);
+		if (!patient)  {
+			fprintf(stderr, "%s", "error: missing patient info\n");
+			exit(EXIT_FAILURE);
+		}
+		char *type = strstr((char*) dstbuf, "tipo");
+		if (!type)  {
+			fprintf(stderr, "%s", "error: missing user-type info\n");
+			exit(EXIT_FAILURE);
+		}
+		if (patient >= type) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((type - patient) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+		patient += sizeof(nombre);
+		uint64_t const sz = (type - patient);
+		memset(patient_name, 0, BUFFER_SIZE);
+		memcpy(patient_name, patient, sz);
+		fprintf(stdout, "%s\n", patient_name);
+		exit(EXIT_SUCCESS);
+	}
+
 	return 0;
 }
