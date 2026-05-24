@@ -38,7 +38,7 @@ Along the line of writing functional code you will notice that I did not bother 
 
 ## Features
 
-List the most important features that I was able to implement during the event timeline:
+Lists the most important features that I was able to implement during the event timeline:
 
 - **zero copy**: we use a memory map to store the extracted data for performance reasons. This means that the Linux Kernel is giving us fast access to memory without incurring on copies from user to kernel space.
 - **lean data**: we need only 7-bits to represent ASCII characters and this means that if there are size limitations (as mentioned in the challenge) by doing this data conversion we are getting rid of the bloat. The document size is reduced to as many bytes as text characters in the document.
