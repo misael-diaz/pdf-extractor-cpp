@@ -292,5 +292,40 @@ int main()
 		exit(EXIT_SUCCESS);
 	}
 
+        char *ste = strstr((char*) dstbuf, "salud total eps");
+	if (ste) {
+		fprintf(stdout, "%s", "processing: salud total document\n");
+		char *document = strstr((char*) dstbuf, "documento");
+		if (!document) {
+			fprintf(stderr, "%s", "error: missing document info\n");
+			exit(EXIT_FAILURE);
+		}
+		char nombre[] = "nombre:";
+		char *patient = strstr((char*) document, nombre);
+		if (!patient)  {
+			fprintf(stderr, "%s", "error: missing patient info\n");
+			exit(EXIT_FAILURE);
+		}
+		char *date = strstr((char*) document, "fecha");
+		if (!date)  {
+			fprintf(stderr, "%s", "error: missing date info\n");
+			exit(EXIT_FAILURE);
+		}
+		if (patient >= date) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((date - patient) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+		patient += sizeof(nombre);
+		uint64_t const sz = (date - patient);
+		memset(patient_name, 0, BUFFER_SIZE);
+		memcpy(patient_name, patient, sz);
+		fprintf(stdout, "%s\n", patient_name);
+		exit(EXIT_SUCCESS);
+	}
+
 	return 0;
 }
