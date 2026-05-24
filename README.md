@@ -40,6 +40,12 @@ g++ -std=gnu++11 -I/usr/include/poppler/cpp/ -Wall -Wformat -O0 -g main.cpp -o p
 - **zero dependencies**: poppler is easy to install and frankly should not even be considered a dependency. Unlike Python or other interpreted or jit compiled languages the dependencies always a problem. Projects need maintenance as the language or the ecosystem evolves thereby increasing the burden of the developers. This is a build once application. All that you need the GNU Compiler Collection (GCC) to build it.
 - **high performance**: This code can run in a Raspberry Pi if you want, it's a low level code that requires little resources. Pretty much the memory to load the pdf into memory.
 
+## Advantages
+
+You don't need a lot of compute to get a reliable and performant application that gets the job done. If you consider the potential problems of fetching sensitive patient or financial data to LLMs. Business need to be really weigh the benefits or advantages of using AI to handle that data. I am certain that the right way to process the data is by writing performant and reliable code. It's deterministic not susceptible to stochastic or probabilistic based solutions such as machine learning algorithms and LLMs.
+
+Moreover, since there are no LLMs in the loop you get a performance application essentially for free if you compare it to what it takes to make LLM processing more deterministic and reliable. The problem with that approach is not only the costs, but the fact that you are trying to coerce a system that is not meant to be reproducible deterministic. By introducing LLMs into this crucial step you risk loosing the credibility of your clients, this is far more important than revenue any day, for they are the reason for your business to exist. 
+
 ## Processing Pipeline
 
 The processing pipeline that this project uses can be best demonstrated by the following diagram:
