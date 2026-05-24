@@ -40,4 +40,8 @@ g++ -std=gnu++11 -I/usr/include/poppler/cpp/ -Wall -Wformat -O0 -g main.cpp -o p
 
 ## Processing Pipeline
 
+The processing pipeline that this project uses can be best demonstrated by the following diagram:
+
 ![pipeline](https://github.com/misael-diaz/pdf-extractor-cpp/blob/953490db23974ec4d507fad4cd9384c4b666ae4a/assets/Pipleline.png)
+
+From the diagram, it is easy to see that the code loads the pdf document into poppler to leverage popplers ability to extract the text as raw bytes. From there we know that the poppler output is going to be Unicode and so for simplicity of our parsing code we pass the data to a unicode to ascii transliterator. Then those bytes are filtered to remove any garbage that can come from watermarks (there is one use case). Since the processing is fast we can afford to pass the filter even if the data doesn't really need it. At that point the data is fed to the parser to extract the patient and physician data that the challenge requires.
