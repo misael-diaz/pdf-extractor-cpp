@@ -624,8 +624,52 @@ int main()
 		memset(patient_document, 0, BUFFER_SIZE);
 		memcpy(patient_document, number, sz);
 
+		char anchor[] = " cc";
+		char *signature = strstr((char*) dstbuf, anchor);
+		if (!signature)  {
+			fprintf(stderr, "%s", "error: missing physician document number\n");
+			exit(EXIT_FAILURE);
+		}
+
+		int found_title = 0;
+		char *beg = signature;
+		char *end = signature;
+		char *str = signature;
+		while (*str) {
+			if (!found_title) {
+				if ((' ' == str[0]) && (' ' == str[-1])) {
+					found_title = 1;
+					end = &str[-1];
+				}
+			}
+			else if (
+				((' ' == str[0]) && (' ' == str[-1])) ||
+				((' ' == str[0]) && ((str[-1] < 0x61) || (str[-1] > 0x7A)))
+				) {
+				beg = &str[1];
+				break;
+			}
+			--str;
+		}
+
+		if ((signature == end) || (signature == beg)) {
+			fprintf(stderr, "%s", "error: failed to extract physician name\n");
+			exit(EXIT_FAILURE);
+		}
+
+		if ((end - beg) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		sz = (end - beg);
+		memset(physician_name, 0, BUFFER_SIZE);
+		memcpy(physician_name, beg, sz);
+
 		fprintf(stdout, "name: %s\n", patient_name);
 		fprintf(stdout, "id: %s\n", patient_document);
+		fprintf(stdout, "physician: %s\n", physician_name);
+
 		exit(EXIT_SUCCESS);
 	}
 
