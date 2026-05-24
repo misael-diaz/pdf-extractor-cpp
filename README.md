@@ -18,9 +18,15 @@ this will install the library and the header files needed to build the applicati
 
 ## Build
 
+You can build the project with standard Linux build essentials:
+
 ```sh
 g++ -std=gnu++11 -I/usr/include/poppler/cpp/ -Wall -Wformat -O0 -g main.cpp -o parser.bin -lpoppler-cpp
 ```
+
+where the include path is important to build the code so that the popplers will be included by the preprocessor.
+
+You will note that the options are for building a development build, no optimizations but still you will see the performance.
 
 ## Processing Pipeline
 
