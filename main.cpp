@@ -234,6 +234,7 @@ int main()
 	char placeholder[BUFFER_SIZE];
 	char patient_name[BUFFER_SIZE];
 	char patient_document[BUFFER_SIZE];
+	char physician_name[BUFFER_SIZE];
 	char *csi = strstr((char*) dstbuf, "clinica san ignacio");
 	if (csi) {
 		fprintf(stdout, "%s", "processing: clinica san ignacio document\n");
@@ -301,9 +302,58 @@ int main()
 		memset(patient_document, 0, BUFFER_SIZE);
 		memcpy(patient_document, document, sz);
 
+		// extracts the physician name
+		char *physician = strstr((char*) dstbuf, "t. profesional");
+		if (!physician)  {
+			fprintf(stderr, "%s", "error: missing physician-id info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		str = physician;
+		char *beg = physician;
+		char *end = physician;
+		int end_found = 0;
+		while (*str) {
+			if (!end_found) {
+				if (
+					((' ' == str[ 0]) || ('\n' == str[ 0])) &&
+					((' ' == str[-1]) || ('\n' == str[-1])) &&
+					((str[-2] >= 0x61) && (str[-2] < 0x7B)) &&
+					((str[-3] >= 0x61) && (str[-3] < 0x7B))
+				   ) {
+					end_found = 1;
+					end = &str[-1];
+				}
+			}
+			else if (
+					((str[ 0] >= 0x61) && (str[ 0] < 0x7B)) &&
+					((str[-1] >= 0x61) && (str[-1] < 0x7B)) &&
+					((' ' == str[-2]) || ('\n' == str[-2])) &&
+					((' ' == str[-3]) || ('\n' == str[-3]))
+				   ) {
+				beg = &str[-1];
+				break;
+			}
+			--str;
+		}
+
+		if ((physician == end) || (physician == beg)) {
+			fprintf(stderr, "%s", "error: failed to extract physician name\n");
+			exit(EXIT_FAILURE);
+		}
+
+		if ((end - beg) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		sz = (end - beg);
+		memset(physician_name, 0, BUFFER_SIZE);
+		memcpy(physician_name, beg, sz);
+
 		fprintf(stdout, "name: %s\n", patient_name);
 		fprintf(stdout, "id: %s\n", patient_document);
-
+		fprintf(stdout, "physician: %s\n", physician_name);
 		exit(EXIT_SUCCESS);
 	}
 
