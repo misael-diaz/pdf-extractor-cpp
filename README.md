@@ -46,6 +46,24 @@ You don't need a lot of compute to get a reliable and performant application tha
 
 Moreover, since there are no LLMs in the loop you get a performance application essentially for free if you compare it to what it takes to make LLM processing more deterministic and reliable. The problem with that approach is not only the costs, but the fact that you are trying to coerce a system that is not meant to be reproducible deterministic. By introducing LLMs into this crucial step you risk loosing the credibility of your clients, this is far more important than revenue any day, for they are the reason for your business to exist. 
 
+## Broader Impact
+
+This approach of writing low level code to extract sensitive data from a PDF document can be applied not only for the health sector but also to other sectors as well such as finance (realiable data extraction from bank summaries).
+
+## Future Work
+
+It would have been great to write this tool so that it processes all the document recursively down a directory hierarchy. However I focused on the core functionality. I can envision that this feature can be implemented by piping the result of the find command using simple file extension matching such as `find -iname '*.pdf'`. We know that the output of the command is going to be a list separated by newlines and so it could be either put all into memory or processed one line at a time if you want to be conservative with memory resources. Meaning you expect a lot of documents (as in from a dedicated fileserver or network filesystem).
+
+It would also have been great to store the data in a SQL database. I would have chosen SQLite because it requires minimal configuration and it's just one more library to link to this code. This would be the connection point with the microservice architecture of the client. Bearing this in mind this is were we would stop and say if a document was not suitable for processing by poppler that it requires human revision instead of the automation workflow. The code would continue processing the rest of the documents.
+
+I can envision this code to be scheduled by a simple cronjob that can be set a system administrator or an experienced Linux user. In fact an LLM can even help guide a newcomer to Linux on how to setup the cronjob. Probably it would be wise to run this application daily I do not expect it to take long to process a batch of document because it is performant.
+
+The best tools are the tools that do just their job and that's it. I do not see more functionality needed for this application other than to extend it for other documents or new layouts.
+
+## Maintenance
+
+This code does not require high maintenance it is essentially a build it once and run it application. I do see the need to extend it (not rewrite it) for new documents. However, the programming is really basic since it uses basic pattern matching provided by GLIBC. I did not see the need to use regular expressions regexs to process the raw data. It all boils down to pointer arithmetic, once you are comfortable with that as a programmer you can work on the development of any low level application. 
+
 ## Processing Pipeline
 
 The processing pipeline that this project uses can be best demonstrated by the following diagram:
