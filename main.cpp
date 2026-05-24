@@ -357,5 +357,100 @@ int main()
 		exit(EXIT_SUCCESS);
 	}
 
+	char *sure = strstr((char*) dstbuf, "sura");
+	if (sure) {
+		fprintf(stdout, "%s", "processing: sura document\n");
+
+		char ccpattern[] = "cc -";
+		char *cc = strstr((char*) dstbuf, ccpattern);
+		if (!cc) {
+			fprintf(stderr, "%s", "error: missing patient id\n");
+			exit(EXIT_FAILURE);
+		}
+
+		// finds the initial part of the patient name
+		int sw = 0;
+		char *str = cc;
+		str += sizeof(ccpattern);
+		while (*str) {
+			if ((*str >= 0x61) && (*str < 0x7B)) {
+				sw = 1;
+				break;
+			}
+			++str;
+		}
+		if (!sw) {
+			fprintf(stderr, "%s", "error: missing patient name\n");
+			exit(EXIT_FAILURE);
+		}
+
+		char afiliado[] = "afiliado";
+		char *patient = strstr((char*) dstbuf, afiliado);
+		if (!patient)  {
+			fprintf(stderr, "%s", "error: missing patient info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		if (str >= patient) {
+			fprintf(stderr, "%s", "error: surprising layout\n");
+			exit(EXIT_FAILURE);
+		}
+
+		if ((str - patient) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		// copy the first part of the name
+		uint64_t sz = (patient - str);
+		memset(patient_name, 0, BUFFER_SIZE);
+		memcpy(patient_name, str, sz);
+
+		char *truncate = patient_name;
+		while (*truncate) {
+			if (
+				((' ' == truncate[0]) || ('\n' == truncate[0])) &&
+				((' ' == truncate[1]) || ('\n' == truncate[1]))
+			   )	{
+				truncate[0] = ' ';
+				truncate[1] = 0;
+				break;
+			}
+			++truncate;
+		}
+
+		patient += sizeof(afiliado);
+		while (*patient) {
+			if ((*patient >= 0x61) && (*patient < 0x7B)) {
+				break;
+			}
+			++patient;
+		}
+
+		char *type = strstr((char*) dstbuf, "ips afiliado");
+		if (!type)  {
+			fprintf(stderr, "%s", "error: missing patient-type info\n");
+			exit(EXIT_FAILURE);
+		}
+		if (patient >= type) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((type - patient) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		sz = (type - patient);
+		if ((strlen(patient_name) + sz + 1) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		strncat(patient_name, patient, sz);
+		fprintf(stdout, "%s\n", patient_name);
+		exit(EXIT_SUCCESS);
+	}
+
 	return 0;
 }
