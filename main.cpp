@@ -295,7 +295,7 @@ int main()
 
         char *cs = strstr((char*) dstbuf, "coopsana");
         if (cs) {
-		fprintf(stdout, "%s", "processing: clinica san ignacio document\n");
+		fprintf(stdout, "%s", "processing: coopsana document\n");
 		char paciente[] = "paciente";
 		char *patient = strstr((char*) dstbuf, paciente);
 		if (!patient)  {
@@ -316,10 +316,41 @@ int main()
 			exit(EXIT_FAILURE);
 		}
 		patient += sizeof(paciente);
-		uint64_t const sz = (pid - patient);
+		uint64_t sz = (pid - patient);
 		memset(patient_name, 0, BUFFER_SIZE);
 		memcpy(patient_name, patient, sz);
-		fprintf(stdout, "%s\n", patient_name);
+
+
+		char cedula[] = "cedula";
+		char *document = strstr((char*) dstbuf, cedula);
+		if (!document)  {
+			fprintf(stderr, "%s", "error: missing patient-document info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		char *address = strstr((char*) document, "direccion");
+		if (!address)  {
+			fprintf(stderr, "%s", "error: missing patient-address info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		if (document >= address) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((address - document) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		document += sizeof(cedula);
+		sz = (address - document);
+		memset(patient_document, 0, BUFFER_SIZE);
+		memcpy(patient_document, document, sz);
+
+		fprintf(stdout, "name: %s\n", patient_name);
+		fprintf(stdout, "id: %s\n", patient_document);
+
 		exit(EXIT_SUCCESS);
 	}
 
