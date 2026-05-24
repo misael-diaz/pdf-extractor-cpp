@@ -232,6 +232,7 @@ int main()
 
 	// extracts data based on provider
 	char patient_name[BUFFER_SIZE];
+	char patient_document[BUFFER_SIZE];
 	char *csi = strstr((char*) dstbuf, "clinica san ignacio");
 	if (csi) {
 		fprintf(stdout, "%s", "processing: clinica san ignacio document\n");
@@ -255,10 +256,40 @@ int main()
 			exit(EXIT_FAILURE);
 		}
 		patient += sizeof(paciente);
-		uint64_t const sz = (type - patient);
+		uint64_t sz = (type - patient);
 		memset(patient_name, 0, BUFFER_SIZE);
 		memcpy(patient_name, patient, sz);
-		fprintf(stdout, "%s\n", patient_name);
+
+		char numero[] = "numero";
+		char *document = strstr((char*) dstbuf, numero);
+		if (!document)  {
+			fprintf(stderr, "%s", "error: missing patient-document info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		char *age = strstr((char*) dstbuf, "edad");
+		if (!age)  {
+			fprintf(stderr, "%s", "error: missing patient-age info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		if (document >= age) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((age - document) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		document += sizeof(numero);
+		sz = (age - document);
+		memset(patient_document, 0, BUFFER_SIZE);
+		memcpy(patient_document, document, sz);
+
+		fprintf(stdout, "name: %s\n", patient_name);
+		fprintf(stdout, "id: %s\n", patient_document);
+
 		exit(EXIT_SUCCESS);
 	}
 
