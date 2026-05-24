@@ -231,8 +231,8 @@ int main()
 
 
 	// extracts data based on provider
-	char patient_name[BUFFER_SIZE];
 	char placeholder[BUFFER_SIZE];
+	char patient_name[BUFFER_SIZE];
 	char patient_document[BUFFER_SIZE];
 	char *csi = strstr((char*) dstbuf, "clinica san ignacio");
 	if (csi) {
