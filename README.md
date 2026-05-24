@@ -24,13 +24,21 @@ g++ -std=gnu++11 -I/usr/include/poppler/cpp/ -Wall -Wformat -O0 -g main.cpp -o p
 
 ## Challenges
 
+This section is dedicated to documenting the challenges that I encountered during the initial phase before I even decided to commit to developing a solution for this challenge.
+
 - **data extraction**: deciding what tool to use to extract the data from the PDF is challenging because there are many alternatives. Chose poppler because it has been battle tested and it require minimal code to work at the byte level.
 - **data cleanup**: doing ascii folding simplifies the parsing of the document and also helps with cleaning up data that could confuse the pdf extraction tool
 - **timestamps formats**: the sample documents show that timestamps are formatted differently among medical records. This needs to be addressed.
 - **multiline spanning data**: example some names are broken down into at least one line (tabulated medical record version). Writing the logic to extract the name without failure at seemed looked as if the code needed to use regexs but it turned out that simple logic was all that was needed to tackle this issue.
 - **extract physician name**: conceptually extracting the physician name is no harder than extracting the patient data or anything else in the document. This is how the code looks prior to the pitch workshop. Stopping code writing at this point.
 
+If you ask me the hardest part was identifying if I can tackle the challenge in a reasonable amount of time and by leveraing my expertise and background. Another difficult point was the programming language choice. At first I was considering to use Golang because I thought I could drive more of the project beyond the data extraction. But as I saw that the data extraction was the biggest hurdle I knew that I had to work with a language that I am more familiar with such as C/C++ or Python. At first I thought it would be great to use Python but that did not go along with my personal goal of building a project with zero dependencies for this event. As I discussed ideas with AI about the alternatives the AI mentioned some libraries that I have used from Python for text processing. As it is common in Python the hardcore libraries are written in C/C++ and Python provides the needed wrappers. I asked AI to generate some code snippets to look at what it would be like to extract raw data from a pdf with a battle tested library. That's when I decided to go all out with C++ and poppler. If you look at the implementation you will know that I am mostly using C++ to interact with poppler and then I switch to low level C code (raw pointers) to get the maximum performance possible with little ceremony from my part. The main reason here was focusing on the problem and know that if there's an error is because of something that I wrote and this is why the debugger is one of the most important tools used to develop this application. It would have been great to write memory safe C++ code but frankly most of the time I am writing C code and again this was not the time to write fancy code. Just write functional code.
+
+Along the line of writing functional code you will notice that I did not bother to refactor code into functions. I saw the patterns but again had to weigh the benefits of speed writing and locality of reference (the developer locality of reference) against writing clean code. I will not be evaluated by the structure of the code, I will be evaluated by the ability of the code to solve the problem at hand.
+
 ## Features
+
+List the most important features that I was able to implement during the event timeline:
 
 - **zero copy**: we use a memory map to store the extracted data for performance reasons. This means that the Linux Kernel is giving us fast access to memory without incurring on copies from user to kernel space.
 - **lean data**: we need only 7-bits to represent ASCII characters and this means that if there are size limitations (as mentioned in the challenge) by doing this data conversion we are getting rid of the bloat. The document size is reduced to as many bytes as text characters in the document.
