@@ -414,6 +414,7 @@ int main()
 			++str;
 		}
 
+		memset(patient_name, 0, BUFFER_SIZE);
 		memcpy(patient_name, beg, (end - beg));
 
 		char cedula[] = "cedula";
