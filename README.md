@@ -50,7 +50,9 @@ Open source code. I am releasing my code under the MIT License so that it will b
 
 ## Broader Impact
 
-This approach of writing low level code to extract sensitive data from a PDF document can be applied not only for the health sector but also to other sectors as well such as finance (realiable data extraction from bank summaries).
+This approach of writing low level code to extract sensitive data from a PDF document can be applied not only for the health sector but also to other sectors as well such as finance (realiable data extraction from bank summaries), law sector, manufacturing, government, and academic settings.
+
+The implementation shows that with simple logic it is possible to extract data from complex pdf documents even if they contain a certain degree of noise or garbage data.
 
 ## Future Work
 
