@@ -11,6 +11,8 @@
 #include <cstdio>
 #include <cerrno>
 
+#define BUFFER_SIZE 256
+
 int main()
 {
 	int64_t rc = 0;
@@ -226,5 +228,406 @@ int main()
 	}
 
 	fprintf(stdout, "%s", data);
+
+
+	// extracts data based on provider
+	char patient_name[BUFFER_SIZE];
+	char placeholder[BUFFER_SIZE];
+	char patient_document[BUFFER_SIZE];
+	char *csi = strstr((char*) dstbuf, "clinica san ignacio");
+	if (csi) {
+		fprintf(stdout, "%s", "processing: clinica san ignacio document\n");
+		char paciente[] = "paciente";
+		char *patient = strstr((char*) dstbuf, paciente);
+		if (!patient)  {
+			fprintf(stderr, "%s", "error: missing patient info\n");
+			exit(EXIT_FAILURE);
+		}
+		char *type = strstr((char*) dstbuf, "tipo paciente");
+		if (!type)  {
+			fprintf(stderr, "%s", "error: missing patient-type info\n");
+			exit(EXIT_FAILURE);
+		}
+		if (patient >= type) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((type - patient) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+		patient += sizeof(paciente);
+		uint64_t sz = (type - patient);
+		memset(patient_name, 0, BUFFER_SIZE);
+		memcpy(patient_name, patient, sz);
+
+		// truncates patient name so that it does not look weird on the console
+		char *str = patient_name;
+		while (*str) {
+			if (
+				((' ' == str[0]) || ('\n' == str[0])) &&
+				((' ' == str[1]) || ('\n' == str[1]))
+			   ) {
+				str[0] = 0;
+				break;
+			}
+			++str;
+		}
+
+		char numero[] = "numero";
+		char *document = strstr((char*) dstbuf, numero);
+		if (!document)  {
+			fprintf(stderr, "%s", "error: missing patient-document info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		char *age = strstr((char*) dstbuf, "edad");
+		if (!age)  {
+			fprintf(stderr, "%s", "error: missing patient-age info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		if (document >= age) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((age - document) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		document += sizeof(numero);
+		sz = (age - document);
+		memset(patient_document, 0, BUFFER_SIZE);
+		memcpy(patient_document, document, sz);
+
+		fprintf(stdout, "name: %s\n", patient_name);
+		fprintf(stdout, "id: %s\n", patient_document);
+
+		exit(EXIT_SUCCESS);
+	}
+
+        char *cs = strstr((char*) dstbuf, "coopsana");
+        if (cs) {
+		fprintf(stdout, "%s", "processing: coopsana document\n");
+		char paciente[] = "paciente";
+		char *patient = strstr((char*) dstbuf, paciente);
+		if (!patient)  {
+			fprintf(stderr, "%s", "error: missing patient info\n");
+			exit(EXIT_FAILURE);
+		}
+		char *pid = strstr((char*) dstbuf, "cedula");
+		if (!pid)  {
+			fprintf(stderr, "%s", "error: missing patient-cedula info\n");
+			exit(EXIT_FAILURE);
+		}
+		if (patient >= pid) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((pid - patient) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+		patient += sizeof(paciente);
+		uint64_t sz = (pid - patient);
+		memset(placeholder, 0, BUFFER_SIZE);
+		memcpy(placeholder, patient, sz);
+
+		// truncates patient name so that it does not look weird on the console
+		int name_found = 0;
+		char *str = placeholder;
+		char *beg = placeholder;
+		char *end = placeholder;
+		while (*str) {
+			if (!name_found) {
+				if ((*str >= 0x61) && (*str < 0x7B)) {
+					name_found = 1;
+					beg = str;
+				}
+			}
+			else if (
+				((' ' == str[0]) || ('\n' == str[0])) &&
+				((' ' == str[1]) || ('\n' == str[1]))
+			   ) {
+				str[0] = 0;
+				end = str;
+				break;
+			}
+			++str;
+		}
+
+		memcpy(patient_name, beg, (end - beg));
+
+		char cedula[] = "cedula";
+		char *document = strstr((char*) dstbuf, cedula);
+		if (!document)  {
+			fprintf(stderr, "%s", "error: missing patient-document info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		char *address = strstr((char*) document, "direccion");
+		if (!address)  {
+			fprintf(stderr, "%s", "error: missing patient-address info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		if (document >= address) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((address - document) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		document += sizeof(cedula);
+		sz = (address - document);
+		memset(patient_document, 0, BUFFER_SIZE);
+		memcpy(patient_document, document, sz);
+
+		fprintf(stdout, "name: %s\n", patient_name);
+		fprintf(stdout, "id: %s\n", patient_document);
+
+		exit(EXIT_SUCCESS);
+	}
+
+        char *ste = strstr((char*) dstbuf, "salud total eps");
+	if (ste) {
+		fprintf(stdout, "%s", "processing: salud total document\n");
+		char anchor[] = "tipo documento";
+		char *doctype = strstr((char*) dstbuf, anchor);
+		if (!doctype) {
+			fprintf(stderr, "%s", "error: missing doctype info\n");
+			exit(EXIT_FAILURE);
+		}
+		char nombre[] = "nombre:";
+		char *patient = strstr((char*) doctype, nombre);
+		if (!patient)  {
+			fprintf(stderr, "%s", "error: missing patient info\n");
+			exit(EXIT_FAILURE);
+		}
+		char *date = strstr((char*) doctype, "fecha");
+		if (!date)  {
+			fprintf(stderr, "%s", "error: missing date info\n");
+			exit(EXIT_FAILURE);
+		}
+		if (patient >= date) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((date - patient) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+		uint64_t sz = (date - (patient + sizeof(nombre)));
+		memset(patient_name, 0, BUFFER_SIZE);
+		memcpy(patient_name, patient + sizeof(nombre), sz);
+
+		char documento[] = "documento:";
+		char *document = strstr(doctype + sizeof(anchor), documento);
+		if (!document)  {
+			fprintf(stderr, "%s", "error: missing document info\n");
+			exit(EXIT_FAILURE);
+		}
+		if (document >= patient) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((patient - document) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		document += sizeof(documento);
+		sz = (patient - document);
+		memset(patient_document, 0, BUFFER_SIZE);
+		memcpy(patient_document, document, sz);
+
+		fprintf(stdout, "name: %s\n", patient_name);
+		fprintf(stdout, "id: %s\n", patient_document);
+		exit(EXIT_SUCCESS);
+	}
+
+	char *se = strstr((char*) dstbuf, "sanitas");
+	if (se) {
+		fprintf(stdout, "%s", "processing: sanitas document\n");
+		char nombre[] = "nombre";
+		char *patient = strstr((char*) dstbuf, nombre);
+		if (!patient)  {
+			fprintf(stderr, "%s", "error: missing patient info\n");
+			exit(EXIT_FAILURE);
+		}
+		char *type = strstr((char*) dstbuf, "tipo");
+		if (!type)  {
+			fprintf(stderr, "%s", "error: missing user-type info\n");
+			exit(EXIT_FAILURE);
+		}
+		if (patient >= type) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((type - patient) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+		patient += sizeof(nombre);
+		uint64_t sz = (type - patient);
+		memset(patient_name, 0, BUFFER_SIZE);
+		memcpy(patient_name, patient, sz);
+
+
+		char identificacion[] = "identificacion: c.c";
+		char *number = strstr((char*) dstbuf, identificacion);
+		if (!number)  {
+			fprintf(stderr, "%s", "error: missing patient number info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		char *sex = strstr((char*) dstbuf, "- sex");
+		if (!number)  {
+			fprintf(stderr, "%s", "error: missing patient gender info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		if (number >= sex) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((sex - number) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		number += sizeof(identificacion);
+		sz = (sex - number);
+		memset(patient_document, 0, BUFFER_SIZE);
+		memcpy(patient_document, number, sz);
+
+		fprintf(stdout, "name: %s\n", patient_name);
+		fprintf(stdout, "id: %s\n", patient_document);
+		exit(EXIT_SUCCESS);
+	}
+
+	char *sure = strstr((char*) dstbuf, "sura");
+	if (sure) {
+		fprintf(stdout, "%s", "processing: sura document\n");
+
+		char ccpattern[] = "cc -";
+		char *cc = strstr((char*) dstbuf, ccpattern);
+		if (!cc) {
+			fprintf(stderr, "%s", "error: missing patient id\n");
+			exit(EXIT_FAILURE);
+		}
+
+		// finds the initial part of the patient name
+		int sw = 0;
+		char *str = cc;
+		str += sizeof(ccpattern);
+		while (*str) {
+			if ((*str >= 0x61) && (*str < 0x7B)) {
+				sw = 1;
+				break;
+			}
+			++str;
+		}
+		if (!sw) {
+			fprintf(stderr, "%s", "error: missing patient name\n");
+			exit(EXIT_FAILURE);
+		}
+
+		if ((str - cc) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		// extracts the document id (cedula)
+		uint64_t sz = (str - (cc + sizeof(ccpattern)));
+		memset(patient_document, 0, BUFFER_SIZE);
+		memcpy(patient_document, cc + sizeof(ccpattern), sz);
+
+		char afiliado[] = "afiliado";
+		char *patient = strstr((char*) dstbuf, afiliado);
+		if (!patient)  {
+			fprintf(stderr, "%s", "error: missing patient info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		if (str >= patient) {
+			fprintf(stderr, "%s", "error: surprising layout\n");
+			exit(EXIT_FAILURE);
+		}
+
+		if ((str - patient) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		// copy the first part of the name
+		sz = (patient - str);
+		memset(patient_name, 0, BUFFER_SIZE);
+		memcpy(patient_name, str, sz);
+
+		char *truncate = patient_name;
+		while (*truncate) {
+			if (
+				((' ' == truncate[0]) || ('\n' == truncate[0])) &&
+				((' ' == truncate[1]) || ('\n' == truncate[1]))
+			   )	{
+				truncate[0] = ' ';
+				truncate[1] = 0;
+				break;
+			}
+			++truncate;
+		}
+
+		patient += sizeof(afiliado);
+		while (*patient) {
+			if ((*patient >= 0x61) && (*patient < 0x7B)) {
+				break;
+			}
+			++patient;
+		}
+
+		char *type = strstr((char*) dstbuf, "ips afiliado");
+		if (!type)  {
+			fprintf(stderr, "%s", "error: missing patient-type info\n");
+			exit(EXIT_FAILURE);
+		}
+		if (patient >= type) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((type - patient) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		sz = (type - patient);
+		if ((strlen(patient_name) + sz + 1) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		strncat(patient_name, patient, sz);
+
+		// truncates patient name so that it does not look weird on the console
+		str = patient_name;
+		while (*str) {
+			if (
+				((' ' == str[0]) || ('\n' == str[0])) &&
+				((' ' == str[1]) || ('\n' == str[1]))
+			   ) {
+				str[0] = 0;
+				break;
+			}
+			++str;
+		}
+
+		fprintf(stdout, "name: %s\n", patient_name);
+		fprintf(stdout, "id: %s\n", patient_document);
+		exit(EXIT_SUCCESS);
+	}
+
 	return 0;
 }
