@@ -573,6 +573,19 @@ int main()
 
 		strncat(patient_name, patient, sz);
 
+		// truncates patient name so that it does not look weird on the console
+		str = patient_name;
+		while (*str) {
+			if (
+				((' ' == str[0]) || ('\n' == str[0])) &&
+				((' ' == str[1]) || ('\n' == str[1]))
+			   ) {
+				str[0] = 0;
+				break;
+			}
+			++str;
+		}
+
 		fprintf(stdout, "name: %s\n", patient_name);
 		fprintf(stdout, "id: %s\n", patient_document);
 		exit(EXIT_SUCCESS);
