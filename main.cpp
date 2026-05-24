@@ -200,7 +200,31 @@ int main()
 		fprintf(stdout, "%s %lu\n", "bytes-kept:", len);
 	}
 
+	// filters garbage from some medical records that use watermarks
 	data = (char unsigned*) dstbuf;
+	for (uint64_t i = 0; i != len; ++i) {
+		if (('e' == data[i]) && ('p' == data[i + 1]) && ((' ' == data[i + 2]) || ('\n' == data[i + 2]))) {
+			data[i] = ' ';
+			data[i + 1] = ' ';
+		}
+		if (('s' == data[i]) && ('u' == data[i + 1]) && ((' ' == data[i + 2]) || ('\n' == data[i + 2]))) {
+			data[i] = ' ';
+			data[i + 1] = ' ';
+		}
+		if (((' ' == data[i]) || ('\n' == data[i])) && ('a' == data[i + 1]) && ((' ' == data[i + 2]) || ('\n' == data[i + 2]))) {
+			data[i + 1] = ' ';
+		}
+		if (((' ' == data[i]) || ('\n' == data[i])) && ('r' == data[i + 1]) && ((' ' == data[i + 2]) || ('\n' == data[i + 2]))) {
+			data[i + 1] = ' ';
+		}
+		if (((' ' == data[i]) || ('\n' == data[i])) && ('s' == data[i + 1]) && ((' ' == data[i + 2]) || ('\n' == data[i + 2]))) {
+			data[i + 1] = ' ';
+		}
+		if (((' ' == data[i]) || ('\n' == data[i])) && ('e' == data[i + 1]) && ((' ' == data[i + 2]) || ('\n' == data[i + 2]))) {
+			data[i + 1] = ' ';
+		}
+	}
+
 	fprintf(stdout, "%s", data);
 	return 0;
 }
