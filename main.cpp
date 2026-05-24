@@ -11,6 +11,8 @@
 #include <cstdio>
 #include <cerrno>
 
+#define BUFFER_SIZE 256
+
 int main()
 {
 	int64_t rc = 0;
@@ -226,5 +228,40 @@ int main()
 	}
 
 	fprintf(stdout, "%s", data);
+
+
+	// extracts data based on provider
+	char patient_name[BUFFER_SIZE];
+	char *csi = strstr((char*) dstbuf, "clinica san ignacio");
+	if (csi) {
+		fprintf(stdout, "%s", "processing: clinica san ignacio document\n");
+		char paciente[] = "paciente";
+		char *patient = strstr((char*) dstbuf, paciente);
+		if (!patient)  {
+			fprintf(stderr, "%s", "error: missing patient info\n");
+			exit(EXIT_FAILURE);
+		}
+		char *type = strstr((char*) dstbuf, "tipo paciente");
+		if (!type)  {
+			fprintf(stderr, "%s", "error: missing patient-type info\n");
+			exit(EXIT_FAILURE);
+		}
+		if (patient >= type) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((type - patient) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+		patient += sizeof(paciente);
+		uint64_t const sz = (type - patient);
+		memset(patient_name, 0, BUFFER_SIZE);
+		memcpy(patient_name, patient, sz);
+		fprintf(stdout, "%s\n", patient_name);
+		exit(EXIT_SUCCESS);
+	}
+
+
 	return 0;
 }
