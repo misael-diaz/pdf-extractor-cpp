@@ -434,10 +434,40 @@ int main()
 			exit(EXIT_FAILURE);
 		}
 		patient += sizeof(nombre);
-		uint64_t const sz = (type - patient);
+		uint64_t sz = (type - patient);
 		memset(patient_name, 0, BUFFER_SIZE);
 		memcpy(patient_name, patient, sz);
-		fprintf(stdout, "%s\n", patient_name);
+
+
+		char identificacion[] = "identificacion: c.c";
+		char *number = strstr((char*) dstbuf, identificacion);
+		if (!number)  {
+			fprintf(stderr, "%s", "error: missing patient number info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		char *sex = strstr((char*) dstbuf, "- sex");
+		if (!number)  {
+			fprintf(stderr, "%s", "error: missing patient gender info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		if (number >= sex) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((sex - number) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		number += sizeof(identificacion);
+		sz = (sex - number);
+		memset(patient_document, 0, BUFFER_SIZE);
+		memcpy(patient_document, number, sz);
+
+		fprintf(stdout, "name: %s\n", patient_name);
+		fprintf(stdout, "id: %s\n", patient_document);
 		exit(EXIT_SUCCESS);
 	}
 
