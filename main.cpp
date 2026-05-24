@@ -44,17 +44,24 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
-	// NOTE: we are assuming that the important is on the first page
+	// NOTE: we are assuming that the important data is on the first page
 	std::unique_ptr<poppler::page> page(doc->create_page(0));
 	if (!page) {
 		fprintf(stderr, "%s", "error: failed to create page\n");
 		exit(EXIT_FAILURE);
 	}
 
+	// NOTE: Even though the code is returning an error, this can be used to signal
+	//       that the medical document must be processed manually probably because
+	//       of poor resolution. This is the right way to respond to that case.
+	poppler::byte_array bytes = page->text().to_utf8();
+	if (!bytes.size()) {
+		fprintf(stderr, "%s", "error: poppler failed to extract text data\n");
+		exit(EXIT_FAILURE);
+	}
 
 	uint64_t bytes_written = 0;
 	char unsigned *data = (char unsigned*) buf;
-	poppler::byte_array bytes = page->text().to_utf8();
 	for (uint64_t i = 0; i != bytes.size(); ++i, ++bytes_written) {
 		data[bytes_written] = bytes[i];
 		if ((len_mmap - bytes_written) <= pagesz) {
