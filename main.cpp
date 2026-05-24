@@ -232,6 +232,7 @@ int main()
 
 	// extracts data based on provider
 	char patient_name[BUFFER_SIZE];
+	char placeholder[BUFFER_SIZE];
 	char patient_document[BUFFER_SIZE];
 	char *csi = strstr((char*) dstbuf, "clinica san ignacio");
 	if (csi) {
@@ -259,6 +260,19 @@ int main()
 		uint64_t sz = (type - patient);
 		memset(patient_name, 0, BUFFER_SIZE);
 		memcpy(patient_name, patient, sz);
+
+		// truncates patient name so that it does not look weird on the console
+		char *str = patient_name;
+		while (*str) {
+			if (
+				((' ' == str[0]) || ('\n' == str[0])) &&
+				((' ' == str[1]) || ('\n' == str[1]))
+			   ) {
+				str[0] = 0;
+				break;
+			}
+			++str;
+		}
 
 		char numero[] = "numero";
 		char *document = strstr((char*) dstbuf, numero);
@@ -317,9 +331,33 @@ int main()
 		}
 		patient += sizeof(paciente);
 		uint64_t sz = (pid - patient);
-		memset(patient_name, 0, BUFFER_SIZE);
-		memcpy(patient_name, patient, sz);
+		memset(placeholder, 0, BUFFER_SIZE);
+		memcpy(placeholder, patient, sz);
 
+		// truncates patient name so that it does not look weird on the console
+		int name_found = 0;
+		char *str = placeholder;
+		char *beg = placeholder;
+		char *end = placeholder;
+		while (*str) {
+			if (!name_found) {
+				if ((*str >= 0x61) && (*str < 0x7B)) {
+					name_found = 1;
+					beg = str;
+				}
+			}
+			else if (
+				((' ' == str[0]) || ('\n' == str[0])) &&
+				((' ' == str[1]) || ('\n' == str[1]))
+			   ) {
+				str[0] = 0;
+				end = str;
+				break;
+			}
+			++str;
+		}
+
+		memcpy(patient_name, beg, (end - beg));
 
 		char cedula[] = "cedula";
 		char *document = strstr((char*) dstbuf, cedula);
