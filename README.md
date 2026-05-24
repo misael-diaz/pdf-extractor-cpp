@@ -64,7 +64,7 @@ Another advantage is that code is open source. I am releasing my code under the 
 
 This approach of writing low level code to extract sensitive data from a PDF document can be applied not only to the health sector but also to other sectors as well such as finance (realiable financial data extraction), law sector (complex documents), manufacturing (highly technical documents), government, and academic settings.
 
-The implementation leverages simple logic that can be applied to extract data from other complex pdf documents even if they contain a certain degree of noise or garbage data.
+The implementation leverages simple logic that can be applied to extract data from other complex pdf documents even if they contain a certain degree of noise or garbage data. This is why this tool is ideal to deal with sectors involved with sensitive data.
 
 ## Future Work
 
