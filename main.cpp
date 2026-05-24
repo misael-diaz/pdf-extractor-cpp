@@ -262,6 +262,35 @@ int main()
 		exit(EXIT_SUCCESS);
 	}
 
+        char *cs = strstr((char*) dstbuf, "coopsana");
+        if (cs) {
+		fprintf(stdout, "%s", "processing: clinica san ignacio document\n");
+		char paciente[] = "paciente";
+		char *patient = strstr((char*) dstbuf, paciente);
+		if (!patient)  {
+			fprintf(stderr, "%s", "error: missing patient info\n");
+			exit(EXIT_FAILURE);
+		}
+		char *pid = strstr((char*) dstbuf, "cedula");
+		if (!pid)  {
+			fprintf(stderr, "%s", "error: missing patient-cedula info\n");
+			exit(EXIT_FAILURE);
+		}
+		if (patient >= pid) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((pid - patient) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+		patient += sizeof(paciente);
+		uint64_t const sz = (pid - patient);
+		memset(patient_name, 0, BUFFER_SIZE);
+		memcpy(patient_name, patient, sz);
+		fprintf(stdout, "%s\n", patient_name);
+		exit(EXIT_SUCCESS);
+	}
 
 	return 0;
 }
