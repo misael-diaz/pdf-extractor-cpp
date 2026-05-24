@@ -37,3 +37,7 @@ g++ -std=gnu++11 -I/usr/include/poppler/cpp/ -Wall -Wformat -O0 -g main.cpp -o p
 - **filters out watermark**: at the byte level the watermarks are easy to identify, filtering out the watermark was achieved by writing simple conditionals. These were applied after doing the ascii folding transformation
 - **extracts names from a multiline text**: extracts the full patient name even if it spans multiple line (in the tabulated Sura records).
 - **extracts physician name**: gets the name of the phsysician from one of the cases.
+
+## Processing Pipeline
+
+[!pipeline](https://github.com/misael-diaz/pdf-extractor-cpp/blob/953490db23974ec4d507fad4cd9384c4b666ae4a/assets/Pipleline.png)
