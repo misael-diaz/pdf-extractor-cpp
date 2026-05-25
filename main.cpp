@@ -44,17 +44,24 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
-	// NOTE: we are assuming that the important is on the first page
+	// NOTE: we are assuming that the important data is on the first page
 	std::unique_ptr<poppler::page> page(doc->create_page(0));
 	if (!page) {
 		fprintf(stderr, "%s", "error: failed to create page\n");
 		exit(EXIT_FAILURE);
 	}
 
+	// NOTE: Even though the code is returning an error, this can be used to signal
+	//       that the medical document must be processed manually probably because
+	//       of poor resolution. This is the right way to respond to that case.
+	poppler::byte_array bytes = page->text().to_utf8();
+	if (!bytes.size()) {
+		fprintf(stderr, "%s", "error: poppler failed to extract text data\n");
+		exit(EXIT_FAILURE);
+	}
 
 	uint64_t bytes_written = 0;
 	char unsigned *data = (char unsigned*) buf;
-	poppler::byte_array bytes = page->text().to_utf8();
 	for (uint64_t i = 0; i != bytes.size(); ++i, ++bytes_written) {
 		data[bytes_written] = bytes[i];
 		if ((len_mmap - bytes_written) <= pagesz) {
@@ -407,6 +414,7 @@ int main()
 			++str;
 		}
 
+		memset(patient_name, 0, BUFFER_SIZE);
 		memcpy(patient_name, beg, (end - beg));
 
 		char cedula[] = "cedula";
@@ -436,8 +444,36 @@ int main()
 		memset(patient_document, 0, BUFFER_SIZE);
 		memcpy(patient_document, document, sz);
 
+		// extracts the physician name
+		char profesional[] = "profesional";
+		char *physician = strstr((char*) dstbuf, profesional);
+		if (!physician)  {
+			fprintf(stderr, "%s", "error: missing physician info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		document = strstr(physician, cedula);
+		if (!document)  {
+			fprintf(stderr, "%s", "error: missing physician id\n");
+			exit(EXIT_FAILURE);
+		}
+		if (physician >= document) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((document - physician) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		physician += sizeof(profesional);
+		sz = (document - physician);
+		memset(physician_name, 0, BUFFER_SIZE);
+		memcpy(physician_name, physician, sz);
+
 		fprintf(stdout, "name: %s\n", patient_name);
 		fprintf(stdout, "id: %s\n", patient_document);
+		fprintf(stdout, "physician: %s\n", physician_name);
 
 		exit(EXIT_SUCCESS);
 	}
@@ -494,8 +530,42 @@ int main()
 		memset(patient_document, 0, BUFFER_SIZE);
 		memcpy(patient_document, document, sz);
 
+		// extracts physician name
+		char prescritor[] = "prescritor";
+		char *section = strstr((char*) dstbuf, prescritor);
+		if (!section)  {
+			fprintf(stderr, "%s", "error: missing physician-section info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		char *physician = strstr(section, nombre);
+		if (!section)  {
+			fprintf(stderr, "%s", "error: missing physician-name info\n");
+			exit(EXIT_FAILURE);
+		}
+
+		char *tel = strstr(section, "telefono");
+		if (!tel)  {
+			fprintf(stderr, "%s", "error: missing physician-telephone\n");
+			exit(EXIT_FAILURE);
+		}
+		if (physician >= tel) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((tel - physician) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		physician += sizeof(nombre);
+		sz = (tel - physician);
+		memset(physician_name, 0, BUFFER_SIZE);
+		memcpy(physician_name, physician, sz);
+
 		fprintf(stdout, "name: %s\n", patient_name);
 		fprintf(stdout, "id: %s\n", patient_document);
+		fprintf(stdout, "physician: %s\n", physician_name);
 		exit(EXIT_SUCCESS);
 	}
 
@@ -554,8 +624,52 @@ int main()
 		memset(patient_document, 0, BUFFER_SIZE);
 		memcpy(patient_document, number, sz);
 
+		char anchor[] = " cc";
+		char *signature = strstr((char*) dstbuf, anchor);
+		if (!signature)  {
+			fprintf(stderr, "%s", "error: missing physician document number\n");
+			exit(EXIT_FAILURE);
+		}
+
+		int found_title = 0;
+		char *beg = signature;
+		char *end = signature;
+		char *str = signature;
+		while (*str) {
+			if (!found_title) {
+				if ((' ' == str[0]) && (' ' == str[-1])) {
+					found_title = 1;
+					end = &str[-1];
+				}
+			}
+			else if (
+				((' ' == str[0]) && (' ' == str[-1])) ||
+				((' ' == str[0]) && ((str[-1] < 0x61) || (str[-1] > 0x7A)))
+				) {
+				beg = &str[1];
+				break;
+			}
+			--str;
+		}
+
+		if ((signature == end) || (signature == beg)) {
+			fprintf(stderr, "%s", "error: failed to extract physician name\n");
+			exit(EXIT_FAILURE);
+		}
+
+		if ((end - beg) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		sz = (end - beg);
+		memset(physician_name, 0, BUFFER_SIZE);
+		memcpy(physician_name, beg, sz);
+
 		fprintf(stdout, "name: %s\n", patient_name);
 		fprintf(stdout, "id: %s\n", patient_document);
+		fprintf(stdout, "physician: %s\n", physician_name);
+
 		exit(EXIT_SUCCESS);
 	}
 
@@ -674,8 +788,48 @@ int main()
 			++str;
 		}
 
+		// extracts physician name
+		char *physician = strstr(type, ccpattern);
+		if (!physician) {
+			fprintf(stderr, "%s", "error: missing physician document number\n");
+			exit(EXIT_FAILURE);
+		}
+
+		physician += sizeof(ccpattern);
+
+		str = physician;
+		while (*str) {
+			if ((str[0] >= 0x61) && (str[0] < 0x7B)) {
+				break;
+			}
+			++str;
+		}
+
+		physician = str;
+
+		char *pat = strstr(type, "responsable");
+		if (!pat) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+
+		if (physician >= pat) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((pat - physician) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		sz = (pat - physician);
+		memset(physician_name, 0, BUFFER_SIZE);
+		memcpy(physician_name, physician, sz);
+
 		fprintf(stdout, "name: %s\n", patient_name);
 		fprintf(stdout, "id: %s\n", patient_document);
+		fprintf(stdout, "physician: %s\n", physician_name);
+
 		exit(EXIT_SUCCESS);
 	}
 
