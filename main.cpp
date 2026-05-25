@@ -788,8 +788,48 @@ int main()
 			++str;
 		}
 
+		// extracts physician name
+		char *physician = strstr(type, ccpattern);
+		if (!physician) {
+			fprintf(stderr, "%s", "error: missing physician document number\n");
+			exit(EXIT_FAILURE);
+		}
+
+		physician += sizeof(ccpattern);
+
+		str = physician;
+		while (*str) {
+			if ((str[0] >= 0x61) && (str[0] < 0x7B)) {
+				break;
+			}
+			++str;
+		}
+
+		physician = str;
+
+		char *pat = strstr(type, "responsable");
+		if (!pat) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+
+		if (physician >= pat) {
+			fprintf(stderr, "%s", "error: unexpected layout\n");
+			exit(EXIT_FAILURE);
+		}
+		if ((pat - physician) >= BUFFER_SIZE) {
+			fprintf(stderr, "%s", "error: would overrun buffer\n");
+			exit(EXIT_FAILURE);
+		}
+
+		sz = (pat - physician);
+		memset(physician_name, 0, BUFFER_SIZE);
+		memcpy(physician_name, physician, sz);
+
 		fprintf(stdout, "name: %s\n", patient_name);
 		fprintf(stdout, "id: %s\n", patient_document);
+		fprintf(stdout, "physician: %s\n", physician_name);
+
 		exit(EXIT_SUCCESS);
 	}
 
