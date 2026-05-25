@@ -86,6 +86,8 @@ It would have been great to write this tool so that it processes all the documen
 
 It would also have been great to store the data in a SQL database. I would have chosen SQLite because it requires minimal configuration and it's just one more library to link to this code. This would be the connection point with the microservice architecture of the client. Bearing this in mind this is were we would stop and say if a document was not suitable for processing by poppler that it requires human revision instead of the automation workflow. The code would continue processing the rest of the documents.
 
+For scanned documents it would have been great to experiment with [Tesseract](https://github.com/tesseract-ocr/tesseract) for the text recognition and extraction.
+
 I can envision this code to be scheduled by a simple cronjob that can be set by a system administrator or an experienced Linux user. In fact an LLM can even help guide a newcomer to Linux on how to setup the cronjob. Probably it would be wise to run this application daily I do not expect it to take long to process a batch of document because it is performant.
 
 The best tools are the tools that do just their job and that's it. I do not see more functionality needed for this application other than to extend it for other documents or new layouts.
